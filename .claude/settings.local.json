@@ -8,7 +8,10 @@
       "Read(//c/Program Files \\(x86\\)/GitHub CLI/**)",
       "Read(//c/Users/1/AppData/**)",
       "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
-      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create SageReactor --public --description \"UE5.4 LLM-Powered Narrative Prototyping Tool\" --source . --remote origin --push)"
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create SageReactor --public --description \"UE5.4 LLM-Powered Narrative Prototyping Tool\" --source . --remote origin --push)",
+      "Bash(mv LLMTypes.h LLMProviderBase.h LLMProviderBase.cpp OllamaProvider.h OllamaProvider.cpp OpenAIProvider.h OpenAIProvider.cpp AnthropicProvider.h AnthropicProvider.cpp GeminiProvider.h GeminiProvider.cpp LLMServiceSubsystem.h LLMServiceSubsystem.cpp LLMService/)",
+      "Bash(mv CharacterProfile.h DialogueSession.h DialogueSession.cpp PromptBuilder.h PromptBuilder.cpp NarrativeData/)",
+      "Bash(mv TestActor.h TestActor.cpp Test/)"
     ]
   }
 }
