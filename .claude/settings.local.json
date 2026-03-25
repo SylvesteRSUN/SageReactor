@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(where gh:*)",
+      "Bash(gh repo:*)",
+      "Bash(cmd.exe /c \"where gh\")",
+      "Read(//c/Program Files/GitHub CLI/**)",
+      "Read(//c/Program Files \\(x86\\)/GitHub CLI/**)",
+      "Read(//c/Users/1/AppData/**)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" auth status)",
+      "Bash(\"/c/Program Files/GitHub CLI/gh.exe\" repo create SageReactor --public --description \"UE5.4 LLM-Powered Narrative Prototyping Tool\" --source . --remote origin --push)"
+    ]
+  }
+}
