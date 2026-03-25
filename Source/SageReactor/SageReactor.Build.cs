@@ -8,6 +8,13 @@ public class SageReactor : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
+		PublicIncludePaths.AddRange(new string[] {
+			"SageReactor",
+			"SageReactor/LLMService",
+			"SageReactor/NarrativeData",
+			"SageReactor/Test"
+		});
+
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "HTTP", "Json", "JsonUtilities" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
