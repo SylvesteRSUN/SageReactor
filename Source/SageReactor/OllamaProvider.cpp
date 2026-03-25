@@ -63,7 +63,7 @@ FString UOllamaProvider::BuildRequestBody(const FLLMRequest& Request)
 	FString ModelName = Request.Model.IsEmpty() ? Config.ModelName : Request.Model;
 	if (ModelName.IsEmpty())
 	{
-		ModelName = TEXT("qwen3:8b");
+		ModelName = TEXT("qwen3.5:9b");
 	}
 	RootObject->SetStringField(TEXT("model"), ModelName);
 	RootObject->SetBoolField(TEXT("stream"), false);
@@ -105,6 +105,9 @@ FString UOllamaProvider::BuildRequestBody(const FLLMRequest& Request)
 	Options->SetNumberField(TEXT("num_predict"), 256);
 	RootObject->SetObjectField(TEXT("options"), Options);
 
+	// Disable thinking mode for qwen3 models (returns content in thinking field otherwise)
+	RootObject->SetBoolField(TEXT("think"), false);
+
 	FString OutputString;
 	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
 	FJsonSerializer::Serialize(RootObject, Writer);
@@ -130,7 +133,18 @@ FLLMResponse UOllamaProvider::ParseResponse(const FString& RawJSON)
 	if (JsonObject->TryGetObjectField(TEXT("message"), MessageObject))
 	{
 		Response.Content = (*MessageObject)->GetStringField(TEXT("content"));
-		Response.bSuccess = true;
+
+		// Fallback: if content is empty but thinking field exists (qwen3 thinking mode)
+		if (Response.Content.IsEmpty())
+		{
+			FString ThinkingContent;
+			if ((*MessageObject)->TryGetStringField(TEXT("thinking"), ThinkingContent))
+			{
+				Response.Content = ThinkingContent;
+			}
+		}
+
+		Response.bSuccess = !Response.Content.IsEmpty();
 	}
 	else
 	{

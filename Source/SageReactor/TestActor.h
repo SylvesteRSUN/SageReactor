@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
+#include "LLMTypes.h"
 #include "TestActor.generated.h"
 
 UCLASS()
@@ -14,4 +15,6 @@ class SAGEREACTOR_API ATestActor : public AActor
 public:
 	virtual void BeginPlay() override;
 
+	UFUNCTION()
+	void OnLLMResponse(const FLLMResponse& Response);
 };
