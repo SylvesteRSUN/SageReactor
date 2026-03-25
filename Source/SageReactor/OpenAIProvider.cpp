@@ -22,7 +22,38 @@ void UOpenAIProvider::SendRequest(const FLLMRequest& Request, const FOnLLMReques
 	HttpRequest->SetHeader(TEXT("Authorization"), FString::Printf(TEXT("Bearer %s"), *Config.ApiKey));
 	HttpRequest->SetContentAsString(Body);
 	HttpRequest->SetTimeout(30.0f);
-	HttpRequest->OnProcessRequestComplete().BindUObject(this, &UOpenAIProvider::OnHttpRequestComplete, OnComplete);
+	HttpRequest->OnProcessRequestComplete().BindLambda(
+		[this, OnComplete](FHttpRequestPtr Req, FHttpResponsePtr Resp, bool bSucceeded)
+		{
+			double ElapsedMs = (FPlatformTime::Seconds() - RequestStartTime) * 1000.0;
+
+			FLLMResponse Response;
+			Response.ResponseTimeMs = static_cast<float>(ElapsedMs);
+
+			if (!bSucceeded || !Resp.IsValid())
+			{
+				Response.bSuccess = false;
+				Response.ErrorMessage = TEXT("HTTP request failed");
+				OnComplete.ExecuteIfBound(Response);
+				return;
+			}
+
+			int32 ResponseCode = Resp->GetResponseCode();
+			FString ResponseBody = Resp->GetContentAsString();
+
+			if (ResponseCode != 200)
+			{
+				Response.bSuccess = false;
+				Response.RawJSON = ResponseBody;
+				Response.ErrorMessage = FString::Printf(TEXT("HTTP %d: %s"), ResponseCode, *ResponseBody);
+				OnComplete.ExecuteIfBound(Response);
+				return;
+			}
+
+			Response = ParseResponse(ResponseBody);
+			Response.ResponseTimeMs = static_cast<float>(ElapsedMs);
+			OnComplete.ExecuteIfBound(Response);
+		});
 	HttpRequest->ProcessRequest();
 }
 
@@ -120,34 +151,3 @@ FLLMResponse UOpenAIProvider::ParseResponse(const FString& RawJSON)
 	return Response;
 }
 
-void UOpenAIProvider::OnHttpRequestComplete(FHttpRequestPtr HttpRequest, FHttpResponsePtr HttpResponse, bool bSucceeded, FOnLLMRequestComplete OnComplete)
-{
-	double ElapsedMs = (FPlatformTime::Seconds() - RequestStartTime) * 1000.0;
-
-	FLLMResponse Response;
-	Response.ResponseTimeMs = static_cast<float>(ElapsedMs);
-
-	if (!bSucceeded || !HttpResponse.IsValid())
-	{
-		Response.bSuccess = false;
-		Response.ErrorMessage = TEXT("HTTP request failed");
-		OnComplete.ExecuteIfBound(Response);
-		return;
-	}
-
-	int32 ResponseCode = HttpResponse->GetResponseCode();
-	FString ResponseBody = HttpResponse->GetContentAsString();
-
-	if (ResponseCode != 200)
-	{
-		Response.bSuccess = false;
-		Response.RawJSON = ResponseBody;
-		Response.ErrorMessage = FString::Printf(TEXT("HTTP %d: %s"), ResponseCode, *ResponseBody);
-		OnComplete.ExecuteIfBound(Response);
-		return;
-	}
-
-	Response = ParseResponse(ResponseBody);
-	Response.ResponseTimeMs = static_cast<float>(ElapsedMs);
-	OnComplete.ExecuteIfBound(Response);
-}
