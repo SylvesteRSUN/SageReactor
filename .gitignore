@@ -1,0 +1,11 @@
+# UE5 generated
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+.vs/
+.vscode/
+*.sln
+*.VC.db
+*.VC.opendb
