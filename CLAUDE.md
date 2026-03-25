@@ -1,4 +1,4 @@
-# NarrativeForge — UE5 LLM-Powered Narrative Prototyping Tool
+# SageReactor — UE5 LLM-Powered Narrative Prototyping Tool
 
 ## Project Plan & Technical Specification
 
@@ -25,7 +25,7 @@
 │                    UE5 Editor                          │
 │                                                        │
 │  ┌────────────────────────────────────────┐            │
-│  │     NarrativeForge Editor Panel        │            │
+│  │     SageReactor Editor Panel        │            │
 │  │     (Editor Utility Widget / UMG)      │            │
 │  │                                        │            │
 │  │  ┌──────────┐  ┌───────────────────┐  │            │
@@ -48,8 +48,9 @@
 │  ┌───────────────▼────────────────────────┐            │
 │  │  Narrative Data Layer (C++)            │            │
 │  │  - UCharacterProfile (UDataAsset)      │            │
-│  │  - FDialogueEntry struct               │            │
-│  │  - FDialogueSession                    │            │
+│  │  - FDialogueEntry / UDialogueSession   │            │
+│  │  - NarrativeState (world state store)  │            │
+│  │  - ResponseValidator (quality gate)    │            │
 │  └───────────────┬────────────────────────┘            │
 │                  │                                      │
 │  ┌───────────────▼────────────────────────┐            │
@@ -73,7 +74,7 @@
 
 ### 2.2 项目类型
 - C++ 空白项目（Blank template）
-- 项目名称：`NarrativeForge`
+- 项目名称：`SageReactor`
 
 ### 2.3 关键UE模块依赖
 - `HTTP` — HTTP请求
@@ -180,12 +181,19 @@ CHARACTER PROFILE:
 SCENE CONTEXT:
 {SceneContext}
 
+WORLD STATE:
+{NarrativeState}
+
+EXAMPLE DIALOGUE (match this tone and style):
+{ExampleDialogues}
+
 RULES:
 - Stay strictly in character
 - Keep responses to 1-3 sentences unless asked for more
 - Match the speaking style defined above
 - Do not break character or reference being an AI
 - If the player says something unrelated, deflect naturally in character
+- Adjust your behavior based on the world state above
 
 Respond to the player's dialogue as {Name}.
 """
@@ -193,6 +201,8 @@ Respond to the player's dialogue as {Name}.
 关键设计原则：
 - Prompt模板应可配置，不要硬编码
 - 角色约束放在system prompt中，用户输入放在user message中
+- NarrativeState注入世界状态，让NPC根据游戏状态改变行为
+- ExampleDialogues提供few-shot样本，比纯描述更有效地控制语气
 - 这体现了JD要求的"controllable AI" — 设计师通过编辑角色参数来控制AI输出
 ```
 
@@ -220,10 +230,73 @@ FString CurrentGoal;  // e.g. "Convince the player to retrieve the lost sword"
 UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Behavior")
 FString SpeakingStyle;  // e.g. "Medieval formal, uses 'thee' and 'thou'"
 
+UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Few-Shot")
+TArray<FString> ExampleDialogues;  // 角色对话样本，注入Prompt让LLM模仿语气
+
 使用UDataAsset的原因：
 - 可以在Content Browser中创建、保存、复用
 - 支持编辑器面板中的属性编辑器
 - 这体现了JD要求的"content workflows" — 角色数据作为资产管理
+```
+
+**NarrativeState.h/.cpp** — 世界状态系统
+```
+核心思想：从 stateless chatbot → stateful narrative system
+
+USTRUCT(BlueprintType)
+struct FNarrativeState
+{
+    UPROPERTY(EditAnywhere, BlueprintReadWrite)
+    TMap<FString, FString> StateMap;
+    // 例如:
+    // "player_reputation" → "criminal"
+    // "quest_stage" → "after_king_death"
+    // "npc_attitude" → "hostile"
+};
+
+UCLASS(BlueprintType)
+class UNarrativeStateManager : public UObject
+{
+    void SetState(FString Key, FString Value);
+    FString GetState(FString Key);
+    FString BuildStatePromptSection();  // 输出注入Prompt的文本块
+};
+
+注入到Prompt的效果：
+WORLD STATE:
+- player_reputation: criminal
+- quest_stage: after_king_death
+- npc_attitude: hostile
+
+RULE: Adjust your behavior based on the world state above.
+
+为什么这个很关键：
+- 直接命中JD中"AI autonomy vs control"
+- NPC根据游戏世界状态改变态度，不再是无记忆的chatbot
+- 展示了narrative system而非chat tool的设计思维
+```
+
+**ResponseValidator.h/.cpp** — 响应校验与重试
+```
+职责：
+- 校验LLM输出是否符合质量标准
+- 不合格时自动重试（最多3次）
+- 记录校验结果供调试面板展示
+
+校验规则：
+- 长度检查：响应不超过指定字符数（默认500）
+- 违禁词检查：不包含"AI"、"language model"、"as an AI"等破角色的词
+- 非空检查：响应不能为空
+- 可扩展：支持自定义校验规则
+
+关键函数：
+- ValidateResponse(FLLMResponse, FValidationRules) → FValidationResult
+- SendWithRetry(FLLMRequest, MaxRetries, OnComplete) — 包装LLMService，自动重试
+
+为什么这个重要：
+- 展示production-ready思维，而非demo-only
+- 代码量小（~100行），但面试影响力大
+- 调试面板可以展示"第几次重试才通过"
 ```
 
 **DialogueSession.h/.cpp**
@@ -305,7 +378,7 @@ void OnLLMResponseReceived(FLLMResponse Response);  // 回调
 ### 4.1 主面板布局
 ```
 ┌─────────────────────────────────────────────┐
-│  NarrativeForge                    [⚙️设置] │
+│  SageReactor                    [⚙️设置] │
 ├──────────┬──────────────────────────────────┤
 │          │                                   │
 │ CHARACTER│  [Character Editor Tab]           │
@@ -424,7 +497,7 @@ Response Body:
 
 **任务：**
 - [ ] 安装UE 5.4（从Epic Games Launcher）
-- [ ] 创建C++ Blank项目 "NarrativeForge"
+- [ ] 创建C++ Blank项目 "SageReactor"
 - [ ] 在IDE中打开项目（建议用Rider或VS2022）
 - [ ] 学习UE C++基础：UCLASS, UPROPERTY, UFUNCTION, GENERATED_BODY()
 - [ ] 创建 `LLMServiceSubsystem` 空壳类（继承 UGameInstanceSubsystem 或 UEditorSubsystem）
@@ -494,9 +567,31 @@ HttpRequest->ProcessRequest();
 
 ---
 
+### Day 3.5：叙事状态系统 + 响应校验（核心差异化）
+
+**目标：** 从"AI对话工具"升级为"AI叙事系统"，展示production-ready思维
+
+**任务：**
+- [ ] 创建 `FNarrativeState` 结构体（TMap<FString, FString> 键值对）
+- [ ] 创建 `UNarrativeStateManager`，提供 SetState/GetState/BuildStatePromptSection
+- [ ] 在 PromptBuilder 中注入 NarrativeState 到 system prompt
+- [ ] 在 CharacterProfile 中添加 `TArray<FString> ExampleDialogues`（few-shot样本）
+- [ ] 在 PromptBuilder 中注入 ExampleDialogues 到 prompt
+- [ ] 创建 `UResponseValidator`，实现校验规则：
+  - 长度检查（不超过500字符）
+  - 违禁词检查（"AI"、"language model"、"as an AI"等）
+  - 非空检查
+- [ ] 实现 `SendWithRetry` 包装函数（最多重试3次）
+- [ ] 测试：设置 npc_attitude=hostile，验证NPC态度变化
+
+**给Claude Code的Prompt提示：**
+> "Create NarrativeState (TMap key-value store) and ResponseValidator (length/forbidden words/empty check with retry). Integrate NarrativeState into PromptBuilder. Add ExampleDialogues to CharacterProfile and inject into prompts as few-shot examples."
+
+---
+
 ### Day 4：Editor工具面板（上）
 
-**目标：** 编辑器内能打开NarrativeForge面板，角色编辑区域可用
+**目标：** 编辑器内能打开SageReactor面板，角色编辑区域可用
 
 **任务：**
 - [ ] 创建 Editor Utility Widget（在Content Browser中：右键 → Editor Utilities → Editor Utility Widget）
@@ -512,7 +607,7 @@ HttpRequest->ProcessRequest();
 - 如果用纯蓝图搭建UI太慢，可以在C++中创建一个helper类暴露所有需要的操作
 
 **给Claude Code的Prompt提示：**
-> "Create a BlueprintFunctionLibrary called NarrativeForgeEditorLibrary with BlueprintCallable static functions: CreateCharacterProfile (takes name, role, personality etc, returns UCharacterProfile*), SaveCharacterAsset (saves to Content Browser), LoadCharacterProfile (from asset path). These will be called from an Editor Utility Widget."
+> "Create a BlueprintFunctionLibrary called SageReactorEditorLibrary with BlueprintCallable static functions: CreateCharacterProfile (takes name, role, personality etc, returns UCharacterProfile*), SaveCharacterAsset (saves to Content Browser), LoadCharacterProfile (from asset path). These will be called from an Editor Utility Widget."
 
 ---
 
@@ -570,23 +665,23 @@ HttpRequest->ProcessRequest();
 
 ### Day 8：调试面板 + 打磨
 
-**目标：** Demo整体体验流畅，有调试功能展示可控性
+**目标：** Demo整体体验流畅，有调试功能展示"可解释AI"
 
 **任务：**
-- [ ] 在Editor面板中添加Debug标签页：
-  - 最近请求的完整Prompt文本（只读）
-  - 响应原始JSON
-  - 响应时间
-  - 模型名称
-  - Ollama连接状态指示器
-- [ ] 添加连接设置：Ollama URL可配置、模型名可选择
+- [ ] 在Editor面板中添加Debug标签页，展示 State→Prompt→Response 因果链：
+  - **State 区域**：当前NarrativeState键值对一览
+  - **Prompt 拆解视图**：用不同颜色/区块标注哪些来自CharacterProfile、哪些来自NarrativeState、哪些来自对话历史
+  - **Response 区域**：最终输出 + 校验结果（是否重试过、第几次通过）
+  - 响应时间、模型名称、连接状态
+- [ ] 添加连接设置：Provider选择、URL可配置、API Key、模型名可选择
 - [ ] 修复已知Bug
 - [ ] 打磨UI细节（对齐、间距、颜色）
 - [ ] 如果有余力：支持多NPC（场景中放2-3个不同性格的角色）
 
 **为什么调试面板很重要：**
 JD明确提到 "Create debugging and diagnostics workflows that make complex systems understandable and easy to iterate on"
-展示你理解：对于creator工具，可调试性和可控性与功能本身同等重要
+展示"可解释AI"：设计师能看懂"NPC为什么这么说" — state影响了prompt，prompt控制了output
+这不只是显示日志，而是让AI决策过程透明化
 
 ---
 
@@ -619,13 +714,13 @@ JD明确提到 "Create debugging and diagnostics workflows that make complex sys
 ## 7. README 结构与内容
 
 ```markdown
-# 🎭 NarrativeForge
+# 🎭 SageReactor
 
 > An Unreal Engine 5 editor tool for AI-powered narrative prototyping,
 > connecting local LLMs to help narrative designers rapidly create
 > and iterate on NPC dialogue.
 
-![NarrativeForge Editor Panel](screenshots/editor_panel.png)
+![SageReactor Editor Panel](screenshots/editor_panel.png)
 
 ## Motivation
 
@@ -638,27 +733,32 @@ JD明确提到 "Create debugging and diagnostics workflows that make complex sys
 ## Features
 
 - **Character Profile System** — Define NPC personalities, backgrounds,
-  and speaking styles as reusable data assets
-- **LLM-Powered Dialogue Generation** — Generate in-character dialogue
-  via local Ollama, no cloud dependency
+  speaking styles, and few-shot dialogue examples as reusable data assets
+- **Multi-Provider LLM Service** — Support Ollama (local), OpenAI,
+  Anthropic, and Gemini — switch providers at runtime
+- **Narrative State System** — World state (reputation, quest stage,
+  NPC attitude) dynamically injected into prompts, driving NPC behavior
+- **Response Validation** — Automatic quality checks (length, forbidden
+  words, character consistency) with retry mechanism
 - **Editor Tool Panel** — Custom UE editor widget for rapid iteration
   without leaving the editor
 - **In-Game Preview** — Walk up to NPCs and test AI dialogue in a
   live 3D environment
-- **Debug & Diagnostics** — Inspect prompts, response times, and raw
-  LLM output for full transparency
-- **Controllable AI** — Character profiles constrain LLM output;
-  designers control the creative direction
+- **Debug & Diagnostics** — State→Prompt→Response causal chain view;
+  understand *why* the AI said what it said
+- **Controllable AI** — Character profiles + narrative state + validation
+  = multi-layered control over AI output
 
 ## Architecture
 
 [架构图]
 
 ### Tech Highlights
-- **Async C++ HTTP integration** with Ollama API via UE's FHttpModule
-- **UDataAsset-based character profiles** for content-browser-native workflows
-- **Prompt engineering layer** that translates designer intent into LLM instructions
-- **Separation of editor tooling and gameplay systems** — same character data drives both
+- **Multi-provider LLM architecture** — abstract base class with Ollama/OpenAI/Anthropic/Gemini implementations, runtime switchable
+- **Narrative State injection** — world state (TMap) dynamically alters NPC behavior through prompt engineering
+- **Response validation pipeline** — automated quality gate with retry, ensuring production-grade AI output
+- **UDataAsset-based character profiles** with few-shot examples for content-browser-native workflows
+- **State→Prompt→Response debug chain** — full transparency into AI decision-making for designers
 
 ## Prerequisites
 
@@ -669,11 +769,11 @@ JD明确提到 "Create debugging and diagnostics workflows that make complex sys
 ## Setup
 
 1. Clone this repo
-2. Right-click NarrativeForge.uproject → Generate Visual Studio project files
+2. Right-click SageReactor.uproject → Generate Visual Studio project files
 3. Open in UE5, compile
 4. Start Ollama: `ollama serve`
 5. Pull model: `ollama pull qwen3.5:9b`
-6. In UE Editor: Tools → Run Editor Utility Widget → NarrativeForgePanel
+6. In UE Editor: Tools → Run Editor Utility Widget → SageReactorPanel
 
 ## Usage
 
