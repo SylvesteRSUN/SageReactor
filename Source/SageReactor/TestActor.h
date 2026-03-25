@@ -1,10 +1,9 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "LLMTypes.h"
+#include "DialogueSession.h"
 #include "TestActor.generated.h"
 
 UCLASS()
@@ -17,4 +16,8 @@ public:
 
 	UFUNCTION()
 	void OnLLMResponse(const FLLMResponse& Response);
+
+private:
+	UPROPERTY()
+	TObjectPtr<UDialogueSession> Session;
 };
