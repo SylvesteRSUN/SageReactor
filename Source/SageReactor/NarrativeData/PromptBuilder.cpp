@@ -18,6 +18,8 @@ FString UPromptBuilder::PromptTemplate = TEXT(
 	"SCENE CONTEXT:\n"
 	"{SceneContext}\n"
 	"\n"
+	"{NarrativeState}"
+	"{ExampleDialogues}"
 	"RULES:\n"
 	"- Stay strictly in character\n"
 	"- Keep responses to 1-3 sentences unless asked for more\n"
@@ -28,7 +30,7 @@ FString UPromptBuilder::PromptTemplate = TEXT(
 	"Respond to the player's dialogue as {Name}."
 );
 
-FString UPromptBuilder::BuildSystemPrompt(const UCharacterProfile* Profile, const FString& SceneContext)
+FString UPromptBuilder::BuildSystemPrompt(const UCharacterProfile* Profile, const FString& SceneContext, const UNarrativeStateManager* StateManager)
 {
 	if (!Profile)
 	{
@@ -43,6 +45,31 @@ FString UPromptBuilder::BuildSystemPrompt(const UCharacterProfile* Profile, cons
 	Result = Result.Replace(TEXT("{Goal}"), *Profile->CurrentGoal);
 	Result = Result.Replace(TEXT("{SpeakingStyle}"), *Profile->SpeakingStyle);
 	Result = Result.Replace(TEXT("{SceneContext}"), *SceneContext);
+
+	// Inject NarrativeState
+	FString StateSection;
+	if (StateManager)
+	{
+		StateSection = StateManager->BuildStatePromptSection();
+		if (!StateSection.IsEmpty())
+		{
+			StateSection += TEXT("\n");
+		}
+	}
+	Result = Result.Replace(TEXT("{NarrativeState}"), *StateSection);
+
+	// Inject ExampleDialogues as few-shot examples
+	FString ExamplesSection;
+	if (Profile->ExampleDialogues.Num() > 0)
+	{
+		ExamplesSection = TEXT("EXAMPLE DIALOGUES:\n");
+		for (const FString& Example : Profile->ExampleDialogues)
+		{
+			ExamplesSection += FString::Printf(TEXT("%s\n"), *Example);
+		}
+		ExamplesSection += TEXT("\n");
+	}
+	Result = Result.Replace(TEXT("{ExampleDialogues}"), *ExamplesSection);
 
 	return Result;
 }

@@ -27,4 +27,8 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Behavior")
 	FString SpeakingStyle;
+
+	// Few-shot dialogue examples to guide LLM tone and style
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Few-Shot", meta = (MultiLine = true))
+	TArray<FString> ExampleDialogues;
 };

@@ -4,6 +4,7 @@
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "CharacterProfile.h"
 #include "DialogueSession.h"
+#include "NarrativeState.h"
 #include "PromptBuilder.generated.h"
 
 UCLASS()
@@ -13,7 +14,7 @@ class SAGEREACTOR_API UPromptBuilder : public UBlueprintFunctionLibrary
 
 public:
 	UFUNCTION(BlueprintCallable, Category = "Narrative|Prompt")
-	static FString BuildSystemPrompt(const UCharacterProfile* Profile, const FString& SceneContext);
+	static FString BuildSystemPrompt(const UCharacterProfile* Profile, const FString& SceneContext, const UNarrativeStateManager* StateManager = nullptr);
 
 	UFUNCTION(BlueprintCallable, Category = "Narrative|Prompt")
 	static FString GetDefaultPromptTemplate();

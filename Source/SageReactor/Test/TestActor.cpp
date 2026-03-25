@@ -1,17 +1,11 @@
 #include "TestActor.h"
 #include "LLMServiceSubsystem.h"
 #include "PromptBuilder.h"
+#include "ResponseValidator.h"
 
 void ATestActor::BeginPlay()
 {
 	Super::BeginPlay();
-
-	ULLMServiceSubsystem* LLMService = GetGameInstance()->GetSubsystem<ULLMServiceSubsystem>();
-	if (!LLMService)
-	{
-		UE_LOG(LogTemp, Error, TEXT("LLMServiceSubsystem not found!"));
-		return;
-	}
 
 	// Use editor-assigned DataAsset, or create a fallback in code
 	UCharacterProfile* Profile = CharacterProfile;
@@ -25,7 +19,17 @@ void ATestActor::BeginPlay()
 		Profile->Background = FText::FromString(TEXT("A veteran soldier who served in the border wars. Now guards the main gate of Ironhaven."));
 		Profile->CurrentGoal = TEXT("Keep the city safe and check all travelers entering the gate");
 		Profile->SpeakingStyle = TEXT("Short, direct sentences. Occasional military jargon. Speaks with authority.");
+		Profile->ExampleDialogues = {
+			TEXT("Player: Can I come in?\nMarcus: Papers first. No papers, no entry. City rules."),
+			TEXT("Player: Nice weather today.\nMarcus: Weather doesn't guard gates. State your business.")
+		};
 	}
+
+	// Set up NarrativeState
+	StateManager = NewObject<UNarrativeStateManager>(this);
+	StateManager->SetState(TEXT("npc_attitude"), NPCAttitude);
+	StateManager->SetState(TEXT("time_of_day"), TEXT("dusk"));
+	StateManager->SetState(TEXT("city_alert_level"), TEXT("elevated"));
 
 	// Create dialogue session
 	Session = NewObject<UDialogueSession>(this);
@@ -33,10 +37,11 @@ void ATestActor::BeginPlay()
 	Session->SceneContext = SceneContext;
 	Session->AddPlayerMessage(PlayerMessage);
 
-	// Build request
-	FString SystemPrompt = UPromptBuilder::BuildSystemPrompt(Profile, SceneContext);
+	// Build request with NarrativeState
+	FString SystemPrompt = UPromptBuilder::BuildSystemPrompt(Profile, SceneContext, StateManager);
 
 	UE_LOG(LogTemp, Warning, TEXT("=== Character: %s (%s) ==="), *Profile->CharacterName, *Profile->Role);
+	UE_LOG(LogTemp, Warning, TEXT("=== NPC Attitude: %s ==="), *NPCAttitude);
 	UE_LOG(LogTemp, Warning, TEXT("=== Player: %s ==="), *PlayerMessage);
 
 	FLLMRequest Request;
@@ -46,7 +51,9 @@ void ATestActor::BeginPlay()
 
 	FOnLLMResponseReceived Callback;
 	Callback.BindDynamic(this, &ATestActor::OnLLMResponse);
-	LLMService->SendChatRequest(Request, Callback);
+
+	// Use SendWithRetry for automatic validation
+	UResponseValidator::SendWithRetry(this, Request, Callback);
 }
 
 void ATestActor::OnLLMResponse(const FLLMResponse& Response)

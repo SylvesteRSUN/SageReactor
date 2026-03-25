@@ -4,6 +4,7 @@
 #include "GameFramework/Actor.h"
 #include "LLMTypes.h"
 #include "DialogueSession.h"
+#include "NarrativeState.h"
 #include "TestActor.generated.h"
 
 UCLASS()
@@ -24,6 +25,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Narrative")
 	FString PlayerMessage = TEXT("Good evening! I'd like to enter the city, please.");
 
+	// NPC attitude for NarrativeState testing (e.g., "friendly", "hostile", "suspicious")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Narrative")
+	FString NPCAttitude = TEXT("hostile");
+
 	virtual void BeginPlay() override;
 
 	UFUNCTION()
@@ -32,4 +37,7 @@ public:
 private:
 	UPROPERTY()
 	TObjectPtr<UDialogueSession> Session;
+
+	UPROPERTY()
+	TObjectPtr<UNarrativeStateManager> StateManager;
 };
