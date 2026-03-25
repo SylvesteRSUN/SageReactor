@@ -3,6 +3,33 @@
 #include "CoreMinimal.h"
 #include "LLMTypes.generated.h"
 
+UENUM(BlueprintType)
+enum class ELLMProvider : uint8
+{
+	Ollama		UMETA(DisplayName = "Ollama"),
+	OpenAI		UMETA(DisplayName = "OpenAI"),
+	Anthropic	UMETA(DisplayName = "Anthropic"),
+	Gemini		UMETA(DisplayName = "Gemini")
+};
+
+USTRUCT(BlueprintType)
+struct SAGEREACTOR_API FLLMProviderConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LLM")
+	ELLMProvider Provider = ELLMProvider::Ollama;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LLM")
+	FString ApiUrl;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LLM")
+	FString ApiKey;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "LLM")
+	FString ModelName;
+};
+
 USTRUCT(BlueprintType)
 struct SAGEREACTOR_API FLLMRequest
 {
