@@ -9,3 +9,6 @@ Build/
 *.sln
 *.VC.db
 *.VC.opendb
+
+# StarterContent (available via UE5 template, too large for git)
+Content/StarterContent/
