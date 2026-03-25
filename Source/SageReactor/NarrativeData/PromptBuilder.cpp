@@ -1,4 +1,8 @@
 #include "PromptBuilder.h"
+#include "Serialization/JsonWriter.h"
+#include "Serialization/JsonSerializer.h"
+#include "Dom/JsonObject.h"
+#include "Dom/JsonValue.h"
 
 FString UPromptBuilder::PromptTemplate = TEXT(
 	"You are a narrative designer's assistant generating in-character dialogue.\n"
@@ -51,4 +55,37 @@ FString UPromptBuilder::GetDefaultPromptTemplate()
 void UPromptBuilder::SetPromptTemplate(const FString& NewTemplate)
 {
 	PromptTemplate = NewTemplate;
+}
+
+FString UPromptBuilder::BuildChatMessages(const UDialogueSession* Session)
+{
+	if (!Session)
+	{
+		return TEXT("[]");
+	}
+
+	TArray<TSharedPtr<FJsonValue>> MessagesArray;
+
+	// Add system prompt if character profile exists
+	if (Session->Character)
+	{
+		TSharedPtr<FJsonObject> SystemMsg = MakeShared<FJsonObject>();
+		SystemMsg->SetStringField(TEXT("role"), TEXT("system"));
+		SystemMsg->SetStringField(TEXT("content"), BuildSystemPrompt(Session->Character, Session->SceneContext));
+		MessagesArray.Add(MakeShared<FJsonValueObject>(SystemMsg));
+	}
+
+	// Add dialogue entries as user/assistant messages
+	for (const FDialogueEntry& Entry : Session->Entries)
+	{
+		TSharedPtr<FJsonObject> Msg = MakeShared<FJsonObject>();
+		Msg->SetStringField(TEXT("role"), Entry.Speaker == TEXT("Player") ? TEXT("user") : TEXT("assistant"));
+		Msg->SetStringField(TEXT("content"), Entry.Content);
+		MessagesArray.Add(MakeShared<FJsonValueObject>(Msg));
+	}
+
+	FString OutputString;
+	TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+	FJsonSerializer::Serialize(MessagesArray, Writer);
+	return OutputString;
 }

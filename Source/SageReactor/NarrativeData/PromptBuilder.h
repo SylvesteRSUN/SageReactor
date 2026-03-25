@@ -21,6 +21,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Narrative|Prompt")
 	static void SetPromptTemplate(const FString& NewTemplate);
 
+	UFUNCTION(BlueprintCallable, Category = "Narrative|Prompt")
+	static FString BuildChatMessages(const UDialogueSession* Session);
+
 private:
 	static FString PromptTemplate;
 };
