@@ -12,12 +12,18 @@ public class SageReactor : ModuleRules
 			"SageReactor",
 			"SageReactor/LLMService",
 			"SageReactor/NarrativeData",
+			"SageReactor/Editor",
 			"SageReactor/Test"
 		});
 
 		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "HTTP", "Json", "JsonUtilities" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
+
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.AddRange(new string[] { "UnrealEd" });
+		}
 
 		// Uncomment if you are using Slate UI
 		// PrivateDependencyModuleNames.AddRange(new string[] { "Slate", "SlateCore" });
