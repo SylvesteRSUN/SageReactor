@@ -12,6 +12,9 @@
       "Bash(mv LLMTypes.h LLMProviderBase.h LLMProviderBase.cpp OllamaProvider.h OllamaProvider.cpp OpenAIProvider.h OpenAIProvider.cpp AnthropicProvider.h AnthropicProvider.cpp GeminiProvider.h GeminiProvider.cpp LLMServiceSubsystem.h LLMServiceSubsystem.cpp LLMService/)",
       "Bash(mv CharacterProfile.h DialogueSession.h DialogueSession.cpp PromptBuilder.h PromptBuilder.cpp NarrativeData/)",
       "Bash(mv TestActor.h TestActor.cpp Test/)"
+    ],
+    "additionalDirectories": [
+      "f:\\UE5project\\SageReactor\\Source\\SageReactor"
     ]
   }
 }

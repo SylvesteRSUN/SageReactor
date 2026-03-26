@@ -611,9 +611,9 @@ HttpRequest->ProcessRequest();
 
 ---
 
-### Day 5：Editor工具面板（下）+ 对话生成流程
+### Day 5：Editor工具面板（下）+ 对话生成 + AI角色生成
 
-**目标：** 面板中完整的对话生成流程跑通
+**目标：** 面板中完整的对话生成流程跑通，并支持AI一键生成角色
 
 **任务：**
 - [ ] 添加对话生成区域：场景上下文输入、玩家输入框、生成按钮、结果显示
@@ -623,6 +623,13 @@ HttpRequest->ProcessRequest();
 - [ ] 添加"Regenerate"按钮（重新生成上一轮回复）
 - [ ] 添加loading状态指示
 - [ ] 测试完整流程：选择角色 → 输入场景 → 输入对话 → 生成 → 查看结果
+- [ ] **AI角色生成功能**：
+  - 在角色编辑区添加描述输入框 + "Auto Generate" 按钮
+  - C++端添加 `BuildCharacterGenerationPrompt` — 构建要求LLM以JSON格式输出角色字段的prompt
+  - C++端添加 `ParseGeneratedCharacter` — 解析LLM返回的JSON，填充CharacterProfile各字段
+  - 蓝图端：点击按钮 → 调用LLM → 解析结果 → 自动填入输入框
+  - 设计师只需输入一段自然语言描述（如"A grumpy old blacksmith who lost his family"），AI自动生成完整角色档案
+  - 这体现了"AI-assisted creator tool"的核心价值：AI辅助，设计师保持控制权
 
 ---
 
@@ -740,6 +747,8 @@ JD明确提到 "Create debugging and diagnostics workflows that make complex sys
   NPC attitude) dynamically injected into prompts, driving NPC behavior
 - **Response Validation** — Automatic quality checks (length, forbidden
   words, character consistency) with retry mechanism
+- **AI Character Generation** — Describe a character in natural language,
+  AI generates the full profile (name, personality, background, speaking style)
 - **Editor Tool Panel** — Custom UE editor widget for rapid iteration
   without leaving the editor
 - **In-Game Preview** — Walk up to NPCs and test AI dialogue in a
@@ -785,6 +794,9 @@ JD明确提到 "Create debugging and diagnostics workflows that make complex sys
 
 ## Future Work
 
+- Character relationships and faction/allegiance system
+- Character race, appearance, and visual trait tags
+- City/region-based character grouping and lore generation
 - Branching dialogue trees with LLM-generated options
 - Dialogue quality evaluation and scoring
 - Export to dialogue data tables for production pipelines
