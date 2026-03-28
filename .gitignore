@@ -10,5 +10,10 @@ Build/
 *.VC.db
 *.VC.opendb
 
-# StarterContent (available via UE5 template, too large for git)
+# Template content packs (available via UE5, too large for git)
 Content/StarterContent/
+Content/Characters/
+Content/ThirdPerson/
+Content/LevelPrototyping/
+Content/__ExternalActors__/
+Content/__ExternalObjects__/
