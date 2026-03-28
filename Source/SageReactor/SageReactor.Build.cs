@@ -13,6 +13,7 @@ public class SageReactor : ModuleRules
 			"SageReactor/LLMService",
 			"SageReactor/NarrativeData",
 			"SageReactor/Editor",
+			"SageReactor/Gameplay",
 			"SageReactor/Test"
 		});
 
