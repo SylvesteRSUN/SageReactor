@@ -5,7 +5,10 @@
 #include "CharacterProfile.h"
 #include "NarrativeState.h"
 #include "DialogueSession.h"
+#include "LLMTypes.h"
 #include "SageReactorEditorLibrary.generated.h"
+
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnEditorLLMResponse, const FString&, ResponseContent);
 
 // Simple struct for character list display
 USTRUCT(BlueprintType)
@@ -72,4 +75,59 @@ public:
 	// Create a new DialogueSession
 	UFUNCTION(BlueprintCallable, Category = "SageReactor|Editor")
 	static UDialogueSession* CreateDialogueSession(UCharacterProfile* Profile, const FString& SceneContext);
+
+	// --- Editor LLM (works without Play/GameInstance) ---
+
+	// Send a direct LLM request from the editor (uses Ollama at localhost:11434)
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Editor")
+	static void SendEditorLLMRequest(
+		const FString& SystemPrompt,
+		const FString& UserMessage,
+		const FOnEditorLLMResponse& OnComplete,
+		const FString& OllamaURL = TEXT("http://localhost:11434/api/chat"),
+		const FString& ModelName = TEXT("qwen3.5:9b"),
+		float Temperature = 0.7f
+	);
+
+	// Send LLM request with full message history (for multi-turn dialogue)
+	static void SendEditorLLMRequestWithHistory(
+		const FString& SystemPrompt,
+		const TArray<FString>& MessageHistory,
+		const FOnEditorLLMResponse& OnComplete,
+		const FString& OllamaURL = TEXT("http://localhost:11434/api/chat"),
+		const FString& ModelName = TEXT("qwen3.5:9b"),
+		float Temperature = 0.7f
+	);
+
+	// Send a dialogue request: builds prompt from profile + scene + history, calls Ollama
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Editor")
+	static void SendDialogueRequest(
+		UCharacterProfile* Profile,
+		UDialogueSession* Session,
+		const FString& PlayerMessage,
+		const FOnEditorLLMResponse& OnComplete
+	);
+
+	// Format dialogue history as a display string for the UI
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Editor")
+	static FString FormatDialogueHistory(const UDialogueSession* Session);
+
+	// --- AI Character Generation ---
+
+	// Build a prompt that asks LLM to generate a character profile as JSON
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Editor")
+	static FString BuildCharacterGenerationPrompt(const FString& Description);
+
+	// Parse LLM JSON response into individual character fields
+	// Returns true if parsing succeeded
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Editor")
+	static bool ParseGeneratedCharacter(
+		const FString& JSONResponse,
+		FString& OutName,
+		FString& OutRole,
+		FString& OutPersonality,
+		FString& OutBackground,
+		FString& OutGoal,
+		FString& OutSpeakingStyle
+	);
 };
