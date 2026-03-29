@@ -207,3 +207,18 @@ FString UNarrativeNPCComponent::GetCharacterName() const
 	}
 	return TEXT("Unknown NPC");
 }
+
+FString UNarrativeNPCComponent::GetDialogueHistoryText() const
+{
+	if (!DialogueSession)
+	{
+		return FString();
+	}
+
+	FString Result;
+	for (const FDialogueEntry& Entry : DialogueSession->Entries)
+	{
+		Result += FString::Printf(TEXT("%s: %s\n\n"), *Entry.Speaker, *Entry.Content);
+	}
+	return Result;
+}

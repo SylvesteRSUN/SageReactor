@@ -71,6 +71,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Narrative")
 	UDialogueSession* GetDialogueSession() const { return DialogueSession; }
 
+	// Get formatted dialogue history for UI display
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Narrative")
+	FString GetDialogueHistoryText() const;
+
 private:
 	UPROPERTY()
 	TObjectPtr<UDialogueSession> DialogueSession;
