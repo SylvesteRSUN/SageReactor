@@ -13,7 +13,10 @@ Build/
 # Template content packs (available via UE5, too large for git)
 Content/StarterContent/
 Content/Characters/
-Content/ThirdPerson/
+Content/ThirdPerson/*
+!Content/ThirdPerson/Blueprints/
+Content/ThirdPerson/Blueprints/*
+!Content/ThirdPerson/Blueprints/BP_ThirdPersonCharacter.uasset
 Content/LevelPrototyping/
 Content/__ExternalActors__/
 Content/__ExternalObjects__/
