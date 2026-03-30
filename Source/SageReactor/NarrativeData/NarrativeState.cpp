@@ -26,6 +26,13 @@ void UNarrativeStateManager::ClearAllStates()
 	State.StateMap.Empty();
 }
 
+TArray<FString> UNarrativeStateManager::GetAllStateKeys() const
+{
+	TArray<FString> Keys;
+	State.StateMap.GetKeys(Keys);
+	return Keys;
+}
+
 FString UNarrativeStateManager::BuildStatePromptSection() const
 {
 	if (State.StateMap.Num() == 0)

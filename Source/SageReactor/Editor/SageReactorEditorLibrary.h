@@ -9,6 +9,8 @@
 #include "SageReactorEditorLibrary.generated.h"
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnEditorLLMResponse, const FString&, ResponseContent);
+DECLARE_DYNAMIC_DELEGATE_TwoParams(FOnConnectionTestResult, bool, bSuccess, const FString&, StatusMessage);
+DECLARE_DYNAMIC_DELEGATE_OneParam(FOnModelsReceived, const TArray<FString>&, ModelNames);
 
 // Simple struct for character list display
 USTRUCT(BlueprintType)
@@ -21,6 +23,37 @@ struct FCharacterListEntry
 
 	UPROPERTY(BlueprintReadOnly)
 	FString AssetPath;
+};
+
+// Debug info struct for the diagnostics panel
+USTRUCT(BlueprintType)
+struct FLLMDebugInfo
+{
+	GENERATED_BODY()
+
+	UPROPERTY(BlueprintReadOnly, Category = "Debug")
+	FString LastSystemPrompt;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Debug")
+	FString LastUserMessage;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Debug")
+	FString LastResponse;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Debug")
+	FString LastRawJSON;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Debug")
+	float LastResponseTimeMs = 0.0f;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Debug")
+	FString ModelName;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Debug")
+	bool bLastRequestSuccess = false;
+
+	UPROPERTY(BlueprintReadOnly, Category = "Debug")
+	FString ErrorMessage;
 };
 
 UCLASS()
@@ -99,13 +132,14 @@ public:
 		float Temperature = 0.7f
 	);
 
-	// Send a dialogue request: builds prompt from profile + scene + history, calls Ollama
+	// Send a dialogue request: builds prompt from profile + scene + history + state, calls LLM
 	UFUNCTION(BlueprintCallable, Category = "SageReactor|Editor")
 	static void SendDialogueRequest(
 		UCharacterProfile* Profile,
 		UDialogueSession* Session,
 		const FString& PlayerMessage,
-		const FOnEditorLLMResponse& OnComplete
+		const FOnEditorLLMResponse& OnComplete,
+		UNarrativeStateManager* StateManager = nullptr
 	);
 
 	// Format dialogue history as a display string for the UI
@@ -130,4 +164,75 @@ public:
 		FString& OutGoal,
 		FString& OutSpeakingStyle
 	);
+
+	// --- Connection Settings ---
+
+	// Set the LLM provider type (Ollama, OpenAI, Anthropic, Gemini)
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Settings")
+	static void SetEditorProvider(ELLMProvider Provider);
+
+	// Get the current provider type
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Settings")
+	static ELLMProvider GetEditorProvider();
+
+	// Set the API URL used by editor LLM requests
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Settings")
+	static void SetEditorOllamaURL(const FString& NewURL);
+
+	// Get the current API URL
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Settings")
+	static FString GetEditorOllamaURL();
+
+	// Set the model name used by editor LLM requests
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Settings")
+	static void SetEditorModelName(const FString& NewModelName);
+
+	// Get the current model name
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Settings")
+	static FString GetEditorModelName();
+
+	// Set the API key (for OpenAI, Anthropic, Gemini)
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Settings")
+	static void SetEditorApiKey(const FString& NewApiKey);
+
+	// Get the default URL for a given provider
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Settings")
+	static FString GetDefaultURLForProvider(ELLMProvider Provider);
+
+	// Get the default model name for a given provider
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Settings")
+	static FString GetDefaultModelForProvider(ELLMProvider Provider);
+
+	// Test connection to the LLM provider
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Settings")
+	static void TestConnection(const FOnConnectionTestResult& OnResult);
+
+	// Get list of available models from Ollama (only works with Ollama provider)
+	UFUNCTION(BlueprintCallable, Category = "SageReactor|Settings")
+	static void GetAvailableModels(const FOnModelsReceived& OnResult);
+
+	// --- Debug / Diagnostics ---
+
+	// Get the debug info from the last LLM request
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Debug")
+	static FLLMDebugInfo GetLastDebugInfo();
+
+	// Get a formatted breakdown of the last prompt (showing which parts came from where)
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Debug")
+	static FString GetPromptBreakdown();
+
+	// Get the narrative state as formatted debug text
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "SageReactor|Debug")
+	static FString GetNarrativeStateDebugText(const UNarrativeStateManager* StateManager);
+
+private:
+	// Static storage for debug tracking
+	static FLLMDebugInfo LastDebugInfo;
+	static ELLMProvider EditorProvider;
+	static FString EditorOllamaURL;
+	static FString EditorModelName;
+	static FString EditorApiKey;
+	static FString LastPromptCharacterSection;
+	static FString LastPromptStateSection;
+	static FString LastPromptHistorySection;
 };

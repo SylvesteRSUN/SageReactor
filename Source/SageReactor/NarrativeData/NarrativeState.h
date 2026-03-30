@@ -41,6 +41,10 @@ public:
 	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Narrative|State")
 	const FNarrativeState& GetNarrativeState() const { return State; }
 
+	// Get all state keys (for UI display)
+	UFUNCTION(BlueprintCallable, BlueprintPure, Category = "Narrative|State")
+	TArray<FString> GetAllStateKeys() const;
+
 private:
 	UPROPERTY()
 	FNarrativeState State;
