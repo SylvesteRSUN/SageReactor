@@ -25,7 +25,7 @@ struct FCharacterListEntry
 	FString AssetPath;
 };
 
-// Debug info struct for the diagnostics panel
+/** Debug snapshot of the last LLM request/response cycle for the diagnostics panel. */
 USTRUCT(BlueprintType)
 struct FLLMDebugInfo
 {
@@ -56,6 +56,11 @@ struct FLLMDebugInfo
 	FString ErrorMessage;
 };
 
+/**
+ * Blueprint function library exposing SageReactor editor tool operations:
+ * character profile management, LLM dialogue requests, AI character generation,
+ * connection settings, and debug diagnostics.
+ */
 UCLASS()
 class SAGEREACTOR_API USageReactorEditorLibrary : public UBlueprintFunctionLibrary
 {

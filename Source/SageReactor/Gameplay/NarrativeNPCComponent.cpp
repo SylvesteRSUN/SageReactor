@@ -30,7 +30,7 @@ void UNarrativeNPCComponent::BeginPlay()
 		InteractionSphere->OnComponentBeginOverlap.AddDynamic(this, &UNarrativeNPCComponent::OnSphereBeginOverlap);
 		InteractionSphere->OnComponentEndOverlap.AddDynamic(this, &UNarrativeNPCComponent::OnSphereEndOverlap);
 
-		UE_LOG(LogTemp, Warning, TEXT("NarrativeNPC: Sphere created for %s, radius=%.0f"), *GetCharacterName(), InteractionRadius);
+		UE_LOG(LogTemp, Log, TEXT("NarrativeNPC: Sphere created for %s, radius=%.0f"), *GetCharacterName(), InteractionRadius);
 	}
 	else
 	{
@@ -59,7 +59,7 @@ void UNarrativeNPCComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 	{
 		bPlayerInRange = true;
 		OnPlayerEnteredRange.Broadcast();
-		UE_LOG(LogTemp, Warning, TEXT("NarrativeNPC: Player entered range of %s (dist=%.0f)"), *GetCharacterName(), Distance);
+		UE_LOG(LogTemp, Log, TEXT("NarrativeNPC: Player entered range of %s (dist=%.0f)"), *GetCharacterName(), Distance);
 	}
 	else if (!bNowInRange && bPlayerInRange)
 	{
@@ -69,7 +69,7 @@ void UNarrativeNPCComponent::TickComponent(float DeltaTime, ELevelTick TickType,
 		{
 			EndDialogue();
 		}
-		UE_LOG(LogTemp, Warning, TEXT("NarrativeNPC: Player left range of %s"), *GetCharacterName());
+		UE_LOG(LogTemp, Log, TEXT("NarrativeNPC: Player left range of %s"), *GetCharacterName());
 	}
 }
 
@@ -78,7 +78,7 @@ void UNarrativeNPCComponent::OnSphereBeginOverlap(UPrimitiveComponent* Overlappe
 {
 	if (!OtherActor || OtherActor == GetOwner()) return;
 
-	UE_LOG(LogTemp, Warning, TEXT("NarrativeNPC: Overlap begin with %s"), *OtherActor->GetName());
+	UE_LOG(LogTemp, Verbose, TEXT("NarrativeNPC: Overlap begin with %s"), *OtherActor->GetName());
 
 	// Check if the overlapping actor is a player-controlled pawn
 	APawn* Pawn = Cast<APawn>(OtherActor);
@@ -86,7 +86,7 @@ void UNarrativeNPCComponent::OnSphereBeginOverlap(UPrimitiveComponent* Overlappe
 	{
 		bPlayerInRange = true;
 		OnPlayerEnteredRange.Broadcast();
-		UE_LOG(LogTemp, Warning, TEXT("NarrativeNPC: Player entered range of %s"), *GetCharacterName());
+		UE_LOG(LogTemp, Log, TEXT("NarrativeNPC: Player entered range of %s"), *GetCharacterName());
 	}
 }
 
@@ -105,7 +105,7 @@ void UNarrativeNPCComponent::OnSphereEndOverlap(UPrimitiveComponent* OverlappedC
 		{
 			EndDialogue();
 		}
-		UE_LOG(LogTemp, Warning, TEXT("NarrativeNPC: Player left range of %s"), *GetCharacterName());
+		UE_LOG(LogTemp, Log, TEXT("NarrativeNPC: Player left range of %s"), *GetCharacterName());
 	}
 }
 
@@ -186,7 +186,7 @@ void UNarrativeNPCComponent::OnLLMResponse(const FLLMResponse& Response)
 			DialogueSession->AddNPCResponse(Response.Content, TEXT(""), Response.ResponseTimeMs);
 		}
 
-		UE_LOG(LogTemp, Warning, TEXT("NarrativeNPC: %s says: %s (%.0fms)"),
+		UE_LOG(LogTemp, Log, TEXT("NarrativeNPC: %s says: %s (%.0fms)"),
 			*GetCharacterName(), *Response.Content, Response.ResponseTimeMs);
 
 		// Broadcast to UI

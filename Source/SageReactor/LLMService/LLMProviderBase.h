@@ -7,6 +7,11 @@
 
 DECLARE_DELEGATE_OneParam(FOnLLMRequestComplete, const FLLMResponse&);
 
+/**
+ * Abstract base class for LLM provider implementations.
+ * Each provider (Ollama, OpenAI, Anthropic, Gemini) handles its own
+ * request formatting, HTTP transport, and response parsing.
+ */
 UCLASS(Abstract)
 class SAGEREACTOR_API ULLMProviderBase : public UObject
 {

@@ -6,6 +6,7 @@
 #include "LLMServiceSubsystem.h"
 #include "ResponseValidator.generated.h"
 
+/** Result of validating an LLM response against quality rules. */
 USTRUCT(BlueprintType)
 struct SAGEREACTOR_API FValidationResult
 {
@@ -41,6 +42,10 @@ private:
 	int32 AttemptCount = 0;
 };
 
+/**
+ * Validates LLM responses against quality rules (length, forbidden words, empty check)
+ * and provides automatic retry on validation failure.
+ */
 UCLASS(BlueprintType)
 class SAGEREACTOR_API UResponseValidator : public UObject
 {

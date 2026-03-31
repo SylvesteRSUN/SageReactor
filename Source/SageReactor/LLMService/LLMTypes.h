@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "LLMTypes.generated.h"
 
+/** Supported LLM provider backends. */
 UENUM(BlueprintType)
 enum class ELLMProvider : uint8
 {

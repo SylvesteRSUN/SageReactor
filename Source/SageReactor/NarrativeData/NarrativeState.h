@@ -4,6 +4,7 @@
 #include "UObject/NoExportTypes.h"
 #include "NarrativeState.generated.h"
 
+/** Key-value store representing the current world state (reputation, quest stage, NPC attitude, etc.). */
 USTRUCT(BlueprintType)
 struct SAGEREACTOR_API FNarrativeState
 {
@@ -13,6 +14,11 @@ struct SAGEREACTOR_API FNarrativeState
 	TMap<FString, FString> StateMap;
 };
 
+/**
+ * Manages world state that dynamically influences NPC dialogue behavior.
+ * State key-value pairs are injected into the LLM system prompt,
+ * enabling NPCs to react to game events like quest progress or player reputation.
+ */
 UCLASS(BlueprintType)
 class SAGEREACTOR_API UNarrativeStateManager : public UObject
 {

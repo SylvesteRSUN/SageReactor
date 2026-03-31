@@ -13,6 +13,11 @@ DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnNPCResponseReady, const FString&,
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerEnteredRange);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnPlayerExitedRange);
 
+/**
+ * Actor component that gives an NPC LLM-driven dialogue capability.
+ * Manages player proximity detection, dialogue sessions, and LLM request routing.
+ * Attach to any Actor with a CharacterProfile to enable AI-powered conversations.
+ */
 UCLASS(ClassGroup=(SageReactor), meta=(BlueprintSpawnableComponent))
 class SAGEREACTOR_API UNarrativeNPCComponent : public UActorComponent
 {

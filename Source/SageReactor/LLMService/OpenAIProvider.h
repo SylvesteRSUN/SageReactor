@@ -4,6 +4,7 @@
 #include "LLMProviderBase.h"
 #include "OpenAIProvider.generated.h"
 
+/** LLM provider for OpenAI API (GPT models). */
 UCLASS()
 class SAGEREACTOR_API UOpenAIProvider : public ULLMProviderBase
 {

@@ -133,12 +133,8 @@ TArray<FCharacterListEntry> USageReactorEditorLibrary::GetCharacterList(const FS
 	TArray<FAssetData> AssetDataList;
 	AssetRegistry.GetAssetsByPath(FName(*FolderPath), AssetDataList, /*bRecursive=*/true);
 
-	UE_LOG(LogTemp, Warning, TEXT("GetCharacterList: Searching in '%s', found %d assets"), *FolderPath, AssetDataList.Num());
-
 	for (const FAssetData& AssetData : AssetDataList)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("  Asset: %s, Class: %s"), *AssetData.AssetName.ToString(), *AssetData.AssetClassPath.ToString());
-
 		UCharacterProfile* Profile = Cast<UCharacterProfile>(AssetData.GetAsset());
 		if (Profile)
 		{
@@ -146,11 +142,6 @@ TArray<FCharacterListEntry> USageReactorEditorLibrary::GetCharacterList(const FS
 			Entry.DisplayName = Profile->CharacterName.IsEmpty() ? AssetData.AssetName.ToString() : Profile->CharacterName;
 			Entry.AssetPath = AssetData.GetObjectPathString();
 			Result.Add(Entry);
-			UE_LOG(LogTemp, Warning, TEXT("  -> Added: %s"), *Entry.DisplayName);
-		}
-		else
-		{
-			UE_LOG(LogTemp, Warning, TEXT("  -> Skipped (not CharacterProfile)"));
 		}
 	}
 #endif
@@ -220,8 +211,7 @@ void USageReactorEditorLibrary::SendDialogueRequest(
 	LastDebugInfo.LastUserMessage = PlayerMessage;
 	LastDebugInfo.ModelName = EditorModelName;
 
-	UE_LOG(LogTemp, Warning, TEXT("SendDialogueRequest: Player said: %s"), *PlayerMessage);
-	UE_LOG(LogTemp, Warning, TEXT("SendDialogueRequest: History has %d entries"), History.Num());
+	UE_LOG(LogTemp, Log, TEXT("SendDialogueRequest: Player said: %s, history: %d entries"), *PlayerMessage, History.Num());
 
 	// Send with full history using configured URL and model
 	SendEditorLLMRequestWithHistory(SystemPrompt, History, OnComplete, EditorOllamaURL, EditorModelName);

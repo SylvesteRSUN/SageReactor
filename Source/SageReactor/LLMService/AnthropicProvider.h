@@ -4,6 +4,7 @@
 #include "LLMProviderBase.h"
 #include "AnthropicProvider.generated.h"
 
+/** LLM provider for Anthropic API (Claude models). */
 UCLASS()
 class SAGEREACTOR_API UAnthropicProvider : public ULLMProviderBase
 {

@@ -4,6 +4,7 @@
 #include "LLMProviderBase.h"
 #include "GeminiProvider.generated.h"
 
+/** LLM provider for Google Gemini API. */
 UCLASS()
 class SAGEREACTOR_API UGeminiProvider : public ULLMProviderBase
 {

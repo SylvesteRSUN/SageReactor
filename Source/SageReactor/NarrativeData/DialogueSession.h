@@ -5,6 +5,7 @@
 #include "CharacterProfile.h"
 #include "DialogueSession.generated.h"
 
+/** A single line of dialogue with metadata for debugging. */
 USTRUCT(BlueprintType)
 struct SAGEREACTOR_API FDialogueEntry
 {
@@ -26,6 +27,10 @@ struct SAGEREACTOR_API FDialogueEntry
 	float ResponseTimeMs = 0.0f;
 };
 
+/**
+ * Manages a multi-turn dialogue conversation between a player and an NPC.
+ * Stores dialogue history and provides formatted output for LLM context and UI display.
+ */
 UCLASS(BlueprintType)
 class SAGEREACTOR_API UDialogueSession : public UObject
 {

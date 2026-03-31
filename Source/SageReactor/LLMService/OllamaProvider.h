@@ -4,6 +4,7 @@
 #include "LLMProviderBase.h"
 #include "OllamaProvider.generated.h"
 
+/** LLM provider for local Ollama instances (localhost:11434). */
 UCLASS()
 class SAGEREACTOR_API UOllamaProvider : public ULLMProviderBase
 {

@@ -8,6 +8,10 @@
 
 DECLARE_DYNAMIC_DELEGATE_OneParam(FOnLLMResponseReceived, const FLLMResponse&, Response);
 
+/**
+ * Game Instance subsystem managing LLM provider lifecycle and request routing.
+ * Supports runtime provider switching between Ollama, OpenAI, Anthropic, and Gemini.
+ */
 UCLASS()
 class SAGEREACTOR_API ULLMServiceSubsystem : public UGameInstanceSubsystem
 {

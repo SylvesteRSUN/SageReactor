@@ -7,6 +7,11 @@
 #include "NarrativeState.h"
 #include "PromptBuilder.generated.h"
 
+/**
+ * Constructs LLM system prompts from character profiles, scene context,
+ * narrative state, and few-shot dialogue examples.
+ * The prompt template is customizable at runtime.
+ */
 UCLASS()
 class SAGEREACTOR_API UPromptBuilder : public UBlueprintFunctionLibrary
 {
